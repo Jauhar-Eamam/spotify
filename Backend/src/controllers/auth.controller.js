@@ -1,4 +1,4 @@
-const UserModel = require("../models/auth.model");
+const UserModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -48,57 +48,54 @@ async function registerUser(req, res) {
   }
 }
 
-async function loginUser(req, res){
-  const {username, email, password} = req.body;
+async function loginUser(req, res) {
+  const { username, email, password } = req.body;
 
   const user = await UserModel.findOne({
-    $or: [
-      {username},
-      {email}
-    ]
-  })
+    $or: [{ username }, { email }],
+  });
 
-  if(!user){
+  if (!user) {
     return res.status(401).json({
-      message: "invalid username or email"
-    })
+      message: "invalid username or email",
+    });
   }
 
   const isPasswordAuthentic = await bcrypt.compare(password, user.password);
 
-  if(!isPasswordAuthentic) {
+  if (!isPasswordAuthentic) {
     return res.status(401).json({
-      message: "Password is wrong"
-    })
+      message: "Password is wrong",
+    });
   }
 
-  const token = await jwt.sign({
-    id: user._id,
-    role: user.role
-  }, process.env.JWT_SECRET)
-
+  const token = await jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+  );
 
   res.cookie("token", token);
 
   res.status(201).json({
     message: "user login succssfully",
-    user:{
+    user: {
       username: user.username,
       email: user.email,
-      role: user.role
-    }
-  })
-
+      role: user.role,
+    },
+  });
 }
 
-async function logoutUser(req, res){
+async function logoutUser(req, res) {
   res.clearCookie("token");
   res.status(200).json({
-    message: "user logout successfully"
-  })
+    message: "user logout successfully",
+  });
 
   console.log("user loged out");
-  
 }
 
 module.exports = { registerUser, loginUser, logoutUser };
