@@ -70,6 +70,7 @@ async function getAllAlbums(req, res) {
   try {
     const allAlbums = await albumModel
       .find()
+      .limit(3)
       .populate("musics", "title , uri")
       .populate("artist", "username email");
 
@@ -82,4 +83,36 @@ async function getAllAlbums(req, res) {
   }
 }
 
-module.exports = { createMusic, getAllMusic, createAlbum, getAllAlbums };
+async function getAlbumById(req, res){
+  const albumId = req.params.id;
+
+
+  if(!albumId){
+    return res.status(409).json({
+      message: "invilade or empty id"
+    })
+  }
+
+try {
+
+  const album = await albumModel.findById(albumId)
+  .populate('musics', 'title uri')
+  .populate("artist", "username email")
+
+  return res.status(200).json({
+    message: "album is feached",
+    album
+  })
+
+
+}
+  catch(err){
+    res.status(409).json({
+      message: "can't find album"
+    })
+  }
+
+}
+
+
+module.exports = { createMusic, getAllMusic, createAlbum, getAllAlbums, getAlbumById };
